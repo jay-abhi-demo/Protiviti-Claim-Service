@@ -67,5 +67,6 @@ current_folder_path=input_folder
 df=pd.DataFrame()
 
  
-
-df.to_excel(output_excel_path + "\\" + "Meta_Data_Output.xlsx", index=False)
+output_file = output_excel_path + "\\" + "Meta_Data_Output.xlsx"
+df.to_excel(output_file, index=False)
+print(output_file)

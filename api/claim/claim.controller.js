@@ -46,21 +46,24 @@ export const handleClaimUpload = (req, res) => {
     const proc = spawn(pythonExec, [scriptPath]);
     proc.stdout.on('data', (data) => {
         console.log(`stdout: ${data.toString()}`);
+        res.status(200).json({
+            message: 'claim registered succefully',
+            claim_number,
+            output: data.toString()
+        });
     });
 
     proc.stderr.on('data', (data) => {
         console.error(`stderr: ${data.toString()}`);
+        res.status(200).json({
+            message: 'claim failed',
+            claim_number,
+            error: data.toString()
+        });
     });
 
     proc.on('close', (code) => {
         console.log(`child process exited with code ${code}`);
     });
-
-    // response
-    res.status(200).json({
-        message: 'claim registered succefully',
-        claim_number,
-    });
-
 
 };
