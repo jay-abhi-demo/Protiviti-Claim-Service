@@ -5,24 +5,18 @@ import os
 import pandas as pd
 
 import json
+import sys
 
 # Load paths from config
-
- 
-
-script_dir = os.getcwd() +"/scripts"
-
-config_path = os.path.join(script_dir, "metadata_config.json")
-
- 
-
-with open(config_path, "r") as f:
-
-    config = json.load(f)
-
-   
-
- 
+if len(sys.argv) < 2:
+    print("Usage: python script.py '<json_string>'")
+    sys.exit(1)
+print(sys.argv[1])
+try:
+    config = json.loads(sys.argv[1])
+except json.JSONDecodeError as e:
+    print(f"[ERROR] Invalid JSON input: {e}")
+    sys.exit(1)
 
 current_folder = config["current_folder"]
 
