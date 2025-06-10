@@ -4,3 +4,13 @@ Before Run Node JS application run following command under scripts folder and py
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+
+# Login
+/api/auth/login
+{
+    "username": "user1",
+    "password": "password123"
+}
+
+#api/claim/upload?claim_number=claim_number
+authorizatio Bearer <<JWT Token>>
