@@ -12,5 +12,6 @@ pip install -r requirements.txt
     "password": "password123"
 }
 
+# Claim
 #api/claim/upload?claim_number=claim_number
 authorizatio Bearer <<JWT Token>>
