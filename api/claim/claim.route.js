@@ -3,7 +3,7 @@ import multer from 'multer';
 import fs from 'fs';
 import { validateClaimNumber } from "./middleware.js";
 import { handleClaimUpload } from "./claim.controller.js";
-
+import { checkauth } from '../auth/middleware.js';
 const router = express.Router();
 
 const storage = multer.diskStorage({
@@ -21,6 +21,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.post('/upload', validateClaimNumber, upload.array('files'), handleClaimUpload);
+router.post('/upload', checkauth, validateClaimNumber, upload.array('files'), handleClaimUpload);
 
 export default router;
