@@ -9,7 +9,7 @@ const router = express.Router();
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const claimNumber = req.query.claim_number;
-        const uploadPath = `./uploads/claim/claim_${claimNumber}`;
+        const uploadPath = `./uploads/claim/claim_${claimNumber}/current_data`;
         // Create folder if it doesn't exist
         fs.mkdirSync(uploadPath, { recursive: true });
         cb(null, uploadPath);
@@ -23,6 +23,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage }).any();
 
-router.post('/upload', checkauth, validateClaimNumber, upload, handleClaimUpload);
+router.post('/upload', validateClaimNumber, upload, handleClaimUpload);
 
 export default router;

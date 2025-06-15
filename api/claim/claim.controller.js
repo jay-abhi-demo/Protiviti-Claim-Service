@@ -2,18 +2,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { spawn } from 'child_process';
 
-async function deleteFilesInFolder(folderPath) {
-    try {
-        const items = await fs.readdir(folderPath, { withFileTypes: true });
-        const deletePromises = items
-            .filter(item => item.isFile())
-            .map(file => fs.unlink(path.join(folderPath, file.name)));
-        await Promise.all(deletePromises);
-    } catch (err) {
-        console.error('Error during cleanup:', err);
-    }
-}
-
 export const handleClaimUpload = async (req, res) => {
     const { claim_number } = req.query;
 
@@ -22,42 +10,28 @@ export const handleClaimUpload = async (req, res) => {
     }
 
     const checks = ['PDF Edit Forgery', 'Meta Data Forgery', 'Copy Move Forgery', 'Image Edit Forgery', 'Duplicate Forgery'];
-    const folders = ['Input Files', 'Image Files', 'Excel Files'];
+    const folders = ['Input Files','Image Files', 'Excel Files'];
     const metadata = {
     };
 
     try {
-        for (const file of req.files) {
-            const originalPath = file.path;
-
-            for (const check of checks) {
-                metadata["current_folder"] = path.resolve(req.files[0].destination, check)
-                for (const folderName of folders) {
-                    const destDir = path.join(file.destination, check, folderName);
-                    await fs.mkdir(destDir, { recursive: true });
-
-                    if (folderName === 'Input Files') {
-                        const targetPath = path.join(destDir, file.filename);
-                        await fs.copyFile(originalPath, targetPath);
-                        metadata.input_folder = path.resolve(destDir);
-                    }
-
-                    if (folderName === 'Excel Files') {
-                        metadata.output_excel = path.resolve(destDir);
-                    }
-                    if(folderName == 'Image Files') {
-                        metadata.image_folder = path.resolve(destDir);
-                    }
+        const claim_path = path.join(process.cwd(), 'uploads', 'claim', `claim_${claim_number}`);
+        for (const check of checks) {
+            metadata["current_folder"] = path.resolve(req.files[0].destination)
+            for (const folderName of folders) {
+                const destDir = path.join(claim_path, check, folderName);
+                await fs.mkdir(destDir, { recursive: true });
+                if (folderName === 'Input Files') {
+                    metadata.input_folder = path.resolve(destDir);
+                }
+                if (folderName === 'Excel Files') {
+                    metadata.output_excel = path.resolve(destDir);
+                }
+                if(folderName == 'Image Files') {
+                    metadata.image_folder = path.resolve(destDir);
                 }
             }
-
-            // Remove the original uploaded file
-            await fs.unlink(originalPath);
         }
-
-        // Cleanup remaining files in the upload destination
-        deleteFilesInFolder(path.resolve(req.files[0].destination));
-
         // Run Python script
         const pythonExec = path.join(process.cwd(), 'scripts', 'venv', 'bin', 'python');  // Update path for Windows if needed
         const scriptPath = path.join(process.cwd(), 'scripts', 'duplicate_code.py');
