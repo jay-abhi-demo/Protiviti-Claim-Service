@@ -37,7 +37,7 @@ export const handleClaimUpload = async (req, res) => {
                     await fs.mkdir(destDir, { recursive: true });
 
                     if (folderName === 'Input Files') {
-                        const targetPath = path.join(destDir, file.originalname);
+                        const targetPath = path.join(destDir, file.filename);
                         await fs.copyFile(originalPath, targetPath);
                         metadata.input_folder = path.resolve(destDir);
                     }

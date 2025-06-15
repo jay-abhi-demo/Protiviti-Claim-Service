@@ -15,12 +15,14 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
-        cb(null, file.originalname); // You could make this more unique if needed
+        const safeOriginalName = file.originalname.replace(/\s+/g, '_'); // replace spaces with underscores
+        const filename = `${file.fieldname}_${safeOriginalName}`;
+        cb(null, filename);
     }
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage }).any();
 
-router.post('/upload', checkauth, validateClaimNumber, upload.array('files'), handleClaimUpload);
+router.post('/upload', checkauth, validateClaimNumber, upload, handleClaimUpload);
 
 export default router;
