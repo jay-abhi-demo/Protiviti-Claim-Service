@@ -21,10 +21,9 @@ export const handleClaimUpload = async (req, res) => {
         return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    const checks = ['Duplicate Forgery', 'PDF Edit Forgery', 'Meta Data Forgery', 'Copy Move Forgery', 'Image Edit Forgery'];
+    const checks = ['PDF Edit Forgery', 'Meta Data Forgery', 'Copy Move Forgery', 'Image Edit Forgery', 'Duplicate Forgery'];
     const folders = ['Input Files', 'Image Files', 'Excel Files'];
     const metadata = {
-        current_folder: req.files[0].destination,
     };
 
     try {
@@ -32,18 +31,22 @@ export const handleClaimUpload = async (req, res) => {
             const originalPath = file.path;
 
             for (const check of checks) {
+                metadata["current_folder"] = path.resolve(req.files[0].destination, check)
                 for (const folderName of folders) {
                     const destDir = path.join(file.destination, check, folderName);
                     await fs.mkdir(destDir, { recursive: true });
 
                     if (folderName === 'Input Files') {
-                        const targetPath = path.join(destDir, file.originalname);
+                        const targetPath = path.join(destDir, file.filename);
                         await fs.copyFile(originalPath, targetPath);
-                        metadata.input_folder = destDir;
+                        metadata.input_folder = path.resolve(destDir);
                     }
 
                     if (folderName === 'Excel Files') {
-                        metadata.output_excel_path = destDir;
+                        metadata.output_excel = path.resolve(destDir);
+                    }
+                    if(folderName == 'Image Files') {
+                        metadata.image_folder = path.resolve(destDir);
                     }
                 }
             }
@@ -57,10 +60,13 @@ export const handleClaimUpload = async (req, res) => {
 
         // Run Python script
         const pythonExec = path.join(process.cwd(), 'scripts', 'venv', 'bin', 'python');  // Update path for Windows if needed
-        const scriptPath = path.join(process.cwd(), 'scripts', 'test.py');
-        const metadataJson = JSON.stringify(metadata);
+        const scriptPath = path.join(process.cwd(), 'scripts', 'duplicate_code.py');
 
-        const proc = spawn(pythonExec, [scriptPath, metadataJson]);
+        // library path
+        metadata["poppler_path"] = path.join(process.cwd(), 'scripts', 'poppler-24.02.0','Library','bin');
+        const metadataJson = JSON.stringify({paths: metadata});
+        const baseString = Buffer.from(metadataJson).toString('base64');
+        const proc = spawn(pythonExec, [scriptPath,baseString ], {cwd: process.cwd()});
         let responded = false;
 
         proc.stdout.on('data', (data) => {
